@@ -122,7 +122,7 @@ int main(void)
     //  writer->SetInputData(imageData);   // Set the input image data
     writer->Write(); // Write the output file
 
-    nfftf_vpr_complex(p.f_hat, p.N_total, "adjoint nfft, vector f_hat");
+ //   nfftf_vpr_complex(p.f_hat, p.N_total, "adjoint nfft, vector f_hat");
     nfftf_finalize(&p); /* Segfault if M > 6 */
     return 0;
 }
