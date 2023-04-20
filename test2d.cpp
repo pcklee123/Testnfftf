@@ -7,9 +7,7 @@
 #include <vtk/vtkPolyData.h>
 #include <vtk/vtkInformation.h>
 #include <vtk/vtkTable.h>
-
 #include <vtk/vtkDelimitedTextWriter.h>
-
 #include <vtk/vtkZLibDataCompressor.h>
 #include <vtk/vtkXMLImageDataWriter.h>
 #include <vtk/vtkXMLPolyDataWriter.h>
@@ -30,14 +28,14 @@ int main(void)
     int M = N1 * N2 * N3;
     nfftf_plan p;
 
-    nfftf_init(&p, 3, N, M);
-    // nfftf_init_2d(&p, N1, N2, M);
+    nfftf_init(&p, 3, N, M); //(plan,3D,{i,j,k},i*j*k)
     for (int k = 0; k < N3; ++k)
         for (int j = 0; j < N2; ++j)
             for (int i = 0; i < N1; ++i)
             {
                 int n = (k * N2 + j) * N1 + i;
-                p.x[3 * n] = -0.5 + (float)i / N1;
+                //int n = (i * N2 + j) * N1 + k;
+                p.x[3 * n] = -0.5 + (float)i / N1; //p.x[n][0]=x ..,y,z
                 p.x[3 * n + 1] = -0.5 + (float)j / N2;
                 p.x[3 * n + 2] = -0.5 + (float)k / N3;
                 if (i == N1 / 2)
@@ -52,7 +50,6 @@ int main(void)
     int nx = n_space_div[0] / xi;
     int ny = n_space_div[1] / yj;
     int nz = n_space_div[2] / zk;
-    // vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New(); // Create the vtkImageData object
     imageData->SetDimensions(nx, ny, nz);                                           // Set the dimensions of the image data
     imageData->SetSpacing(dd[0] * xi, dd[1] * yj, dd[2] * zk);
