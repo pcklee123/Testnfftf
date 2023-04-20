@@ -19,8 +19,8 @@ int main(void)
     int N1 = 12; // x
     int N2 = 14; // y
     int N3 = 16; // z
-//    int maxcells = 32;
-//    int ncomponents = 3;
+                 //    int maxcells = 32;
+                 //    int ncomponents = 3;
     //  int n_space_div[] = {N3, N2, N1};
     double dd[] = {1.0, 1.0, 1.0};
     double posl[] = {-(double)N1 / 2, -(double)N2 / 2, -(double)N3 / 2};
@@ -80,7 +80,6 @@ int main(void)
             for (int i = 0; i < N1; ++i) // i is x-coord and array is [k][j][i]
             {
                 int n = (k * N2 + j) * N1 + i;
-                // int n = (i * N2 + j) * N1 + k;
                 for (int c = 0; c < 3; ++c)
                     data2[3 * n + c] = p.x[3 * n + c]; // x,y,z
             }
@@ -122,7 +121,36 @@ int main(void)
     //  writer->SetInputData(imageData);   // Set the input image data
     writer->Write(); // Write the output file
 
- //   nfftf_vpr_complex(p.f_hat, p.N_total, "adjoint nfft, vector f_hat");
+    // nfftf_trafo(&p); /* Segfault if M <= 6 */
+    fftwf_plan ifft = fftwf_plan_dft_3d(N1, N2, N3, p.f_hat, p.f, FFTW_BACKWARD, FFTW_ESTIMATE);
+
+    // Execute the inverse FFT
+    cout << "execute the inverse FFTW plan" << endl;
+
+    fftwf_execute(ifft);
+    imageData->GetPointData()->GetScalars()->SetName("f_new");
+    //  float *data2 = static_cast<float *>(imageData->GetScalarPointer()); // Get a pointer to the density field array
+
+    for (int k = 0; k < N3; ++k)
+    {
+        for (int j = 0; j < N2; ++j)
+        {
+            for (int i = 0; i < N1; ++i)
+            {
+                int n = (k * N2 + j) * N1 + i;
+                int n1 = (i * N2 + j) * N3 + k;
+                data2[3 * n + 2] = 0;
+                for (int c = 0; c < 2; ++c)
+                    data2[3 * n1 + c] = p.f[n][c];
+            }
+        }
+    }
+
+    writer->SetFileName("f_new.vti"); // Set the output file name                                                                     // Set the time value
+
+    //  writer->SetInputData(imageData);   // Set the input image data
+    writer->Write();    // Write the output file
+                        //   nfftf_vpr_complex(p.f_hat, p.N_total, "adjoint nfft, vector f_hat");
     nfftf_finalize(&p); /* Segfault if M > 6 */
     return 0;
 }
