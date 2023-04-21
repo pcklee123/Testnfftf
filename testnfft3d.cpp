@@ -38,10 +38,7 @@ int main(void)
                 p.x[3 * n] = -0.5 + (float)i / N1; // p.x[n][0]=x ..,y,z
                 p.x[3 * n + 1] = -0.5 + (float)j / N2;
                 p.x[3 * n + 2] = -0.5 + (float)k / N3;
-                if (i == N1 / 2)
-                    p.f[n][0] = 1.0;
-                else
-                    p.f[n][0] = 0.0;
+                p.f[n][0] = sin(i)+2*sin(j)+3* sin(k))+5*(if(i==2)&(j==4)&(k==6));
                 p.f[n][1] = 0.0;
             }
 
@@ -88,7 +85,7 @@ int main(void)
     writer->Write();              // Write the output file
 
     if (p.flags & PRE_ONE_PSI)
-        nfftf_precompute_one_psi(&p);
+        ndftf_precompute_one_psi(&p);
 
     const char *check_error_msg = nfftf_check(&p);
     if (check_error_msg != 0)
@@ -123,9 +120,10 @@ int main(void)
 
     // nfftf_trafo(&p); /* Segfault if M <= 6 */
     fftwf_plan ifft = fftwf_plan_dft_3d(N1, N2, N3, p.f_hat, p.f, FFTW_BACKWARD, FFTW_ESTIMATE);
-
-    // Execute the inverse FFT
-    cout << "execute the inverse FFTW plan" << endl;
+    nfftf_fftshift_complex
+            // Execute the inverse FFT
+            cout
+        << "execute the inverse FFTW plan" << endl;
 
     fftwf_execute(ifft);
     imageData->GetPointData()->GetScalars()->SetName("f_new");
