@@ -16,9 +16,9 @@
 
 int main(void)
 {
-    int N1 = 12; // x
-    int N2 = 14; // y
-    int N3 = 16; // z
+    int N1 = 32; // x
+    int N2 = 64; // y
+    int N3 = 128; // z
                  //    int maxcells = 32;
                  //    int ncomponents = 3;
     //  int n_space_div[] = {N3, N2, N1};
@@ -35,13 +35,15 @@ int main(void)
             for (int i = 0; i < N1; ++i) // i is x-coord and array is [k][j][i]
             {
                 int n = (k * N2 + j) * N1 + i;
-                // int n = (i * N2 + j) * N1 + k;
                 p.x[3 * n] = -0.5 + (float)i / N1; // p.x[n][0]=x ..,y,z
                 p.x[3 * n + 1] = -0.5 + (float)j / N2;
                 p.x[3 * n + 2] = -0.5 + (float)k / N3;
+
                 p.f[n][0] = sin(i) + 2 * sin(j) + 3 * sin(k) + 5 * ((i == 2) & (j == 4) & (k == 6));
                 p.f[n][1] = 0.0;
             }
+    nfftf_set_num_threads(8);
+    cout <<"num threads = "<< nfftf_get_num_threads() << endl;
 
     vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New(); // Create the vtkImageData object
     imageData->SetDimensions(N);                                                    // Set the dimensions of the image data
@@ -56,8 +58,6 @@ int main(void)
             for (int i = 0; i < N1; ++i) // i is x-coord and array is [k][j][i]
             {
                 int n = (k * N2 + j) * N1 + i;
-                // int n = (i * N2 + j) * N1 + k;
-                //                int n1 = (i * ny + j) * nx + k;
                 data2[3 * n + 2] = 0;
                 for (int c = 0; c < 2; ++c)
                     data2[3 * n + c] = p.f[n][c];
@@ -120,14 +120,16 @@ int main(void)
     writer->Write(); // Write the output file
 
     // nfftf_trafo(&p); /* Segfault if M <= 6 */
-    fftwf_plan ifft = fftwf_plan_dft_3d(N1, N2, N3, p.f_hat, p.f, FFTW_BACKWARD, FFTW_ESTIMATE);
-    nfftf_fftshift_complex(p.f_hat, 3, Nn);
-    // Execute the inverse FFT
-    cout
-        << "execute the inverse FFTW plan" << endl;
+    fftwf_plan ifft = fftwf_plan_dft_3d(N3, N2, N2, p.f_hat, p.f, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-    fftwf_execute(ifft);
-    nfftf_fftshift_complex(p.f, 3, Nn);
+    // Execute the inverse FFT
+    cout << "execute the inverse FFTW plan" << endl;
+    // nfftf_fftshift_complex(p.f_hat, 3, Nn);
+    // fftwf_execute(ifft);
+    //  nfftf_fftshift_complex(p.f, 3, Nn);
+
+    nfftf_trafo(&p);
+
     imageData->GetPointData()->GetScalars()->SetName("f_new");
     //  float *data2 = static_cast<float *>(imageData->GetScalarPointer()); // Get a pointer to the density field array
 
@@ -141,7 +143,7 @@ int main(void)
                 int n1 = (i * N2 + j) * N3 + k;
                 data2[3 * n + 2] = 0;
                 for (int c = 0; c < 2; ++c)
-                    data2[3 * n1 + c] = p.f[n][c];
+                    data2[3 * n + c] = p.f[n][c];
             }
         }
     }
