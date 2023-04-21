@@ -24,6 +24,7 @@ int main(void)
     //  int n_space_div[] = {N3, N2, N1};
     double dd[] = {1.0, 1.0, 1.0};
     double posl[] = {-(double)N1 / 2, -(double)N2 / 2, -(double)N3 / 2};
+    NFFT_INT Nn[] = {N1, N2, N3};
     int N[] = {N1, N2, N3};
     int M = N1 * N2 * N3;
     nfftf_plan p;
@@ -38,7 +39,7 @@ int main(void)
                 p.x[3 * n] = -0.5 + (float)i / N1; // p.x[n][0]=x ..,y,z
                 p.x[3 * n + 1] = -0.5 + (float)j / N2;
                 p.x[3 * n + 2] = -0.5 + (float)k / N3;
-                p.f[n][0] = sin(i)+2*sin(j)+3* sin(k))+5*(if(i==2)&(j==4)&(k==6));
+                p.f[n][0] = sin(i) + 2 * sin(j) + 3 * sin(k) + 5 * ((i == 2) & (j == 4) & (k == 6));
                 p.f[n][1] = 0.0;
             }
 
@@ -85,7 +86,7 @@ int main(void)
     writer->Write();              // Write the output file
 
     if (p.flags & PRE_ONE_PSI)
-        ndftf_precompute_one_psi(&p);
+        nfftf_precompute_one_psi(&p);
 
     const char *check_error_msg = nfftf_check(&p);
     if (check_error_msg != 0)
@@ -120,12 +121,13 @@ int main(void)
 
     // nfftf_trafo(&p); /* Segfault if M <= 6 */
     fftwf_plan ifft = fftwf_plan_dft_3d(N1, N2, N3, p.f_hat, p.f, FFTW_BACKWARD, FFTW_ESTIMATE);
-    nfftf_fftshift_complex
-            // Execute the inverse FFT
-            cout
+    nfftf_fftshift_complex(p.f_hat, 3, Nn);
+    // Execute the inverse FFT
+    cout
         << "execute the inverse FFTW plan" << endl;
 
     fftwf_execute(ifft);
+    nfftf_fftshift_complex(p.f, 3, Nn);
     imageData->GetPointData()->GetScalars()->SetName("f_new");
     //  float *data2 = static_cast<float *>(imageData->GetScalarPointer()); // Get a pointer to the density field array
 
